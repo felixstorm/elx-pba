@@ -4,9 +4,6 @@ import (
 	"bufio"
 	"crypto/sha1"
 	"crypto/sha512"
-	"encoding/base64"
-
-	// "encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -36,13 +33,23 @@ var (
 )
 
 func main() {
-	fmt.Printf("\n")
-	l, _ := base64.StdEncoding.DecodeString(logo)
-	fmt.Println(string(l))
+	fmt.Println()
+	fmt.Println()
+	fmt.Println(`   ________ ___   ___  ________  ________      `)
+	fmt.Println(`   |\   ____\\  \ |\  \|\   __  \|\   __  \    `)
+	fmt.Println(`   \ \  \___\ \  \\_\  \ \  \|\  \ \  \|\  \   `)
+	fmt.Println(`    \ \  \   \ \______  \ \   __  \ \   __  \  `)
+	fmt.Println(`     \ \  \___\|_____|\  \ \  \ \  \ \  \|\  \ `)
+	fmt.Println(`      \ \_______\    \ \__\ \__\ \__\ \_______\`)
+	fmt.Println(`       \|_______|     \|__|\|__|\|__|\|_______|`)
+	fmt.Println()
+	fmt.Println()
+	fmt.Println()
+
 	if GitInfo == "" {
 		GitInfo = "(no hash)"
 	}
-	fmt.Printf("Welcome to Elastx PBA!\nSource: %s, %s\n\n", GitSource, GitInfo)
+	fmt.Printf("Welcome to Elastx PBA!\nSource: %s\nGit Info: %s\n\n", GitSource, GitInfo)
 	log.SetPrefix("elx-pba: ")
 
 	if _, err := mount.Mount("proc", "/proc", "proc", "", 0); err != nil {
@@ -71,19 +78,6 @@ func main() {
 			Execute("/bbin/elvish")
 		}
 	}()
-
-	dmi, err := readDMI()
-	if err != nil {
-		log.Printf("Failed to read SMBIOS/DMI data: %v", err)
-		return
-	}
-
-	log.Printf("System UUID:            %s", dmi.SystemUUID)
-	log.Printf("System serial:          %s", dmi.SystemSerialNumber)
-	log.Printf("Baseboard manufacturer: %s", dmi.BaseboardManufacturer)
-	log.Printf("Baseboard product:      %s", dmi.BaseboardProduct)
-	log.Printf("Baseboard serial:       %s", dmi.BaseboardSerialNumber)
-	log.Printf("Chassis serial:         %s", dmi.ChassisSerialNumber)
 
 	sysblk, err := ioutil.ReadDir("/sys/class/block/")
 	if err != nil {
@@ -145,6 +139,10 @@ func main() {
 				// reuse-existing password for multiple drives
 				if password == "" {
 					password = getDrivePassword()
+					if password == "" {
+						// skip on empty password
+						break
+					}
 				}
 				if err := unlock(d, password, dsn); err != nil {
 					log.Printf("Failed to unlock %s: %v", identity, err)
@@ -154,17 +152,19 @@ func main() {
 					unlocked = true
 				}
 			}
-			bd, err := block.Device(devpath)
-			if err != nil {
-				log.Printf("block.Device(%s): %v", devpath, err)
-				continue
+			if unlocked {
+				bd, err := block.Device(devpath)
+				if err != nil {
+					log.Printf("block.Device(%s): %v", devpath, err)
+					continue
+				}
+				if err := bd.ReadPartitionTable(); err != nil {
+					log.Printf("block.ReadPartitionTable(%s): %v", devpath, err)
+					continue
+				}
+				log.Printf("Drive %s has been unlocked", devpath)
+				startEmergencyShell = false
 			}
-			if err := bd.ReadPartitionTable(); err != nil {
-				log.Printf("block.ReadPartitionTable(%s): %v", devpath, err)
-				continue
-			}
-			log.Printf("Drive %s has been unlocked", devpath)
-			startEmergencyShell = false
 		} else {
 			log.Printf("Considered drive %s, but drive is not locked", identity)
 		}
@@ -186,15 +186,7 @@ func main() {
 		case <-time.After(5 * time.Second):
 			// pass
 		}
-		// Work-around for systems which are known to fail during boot/kexec - these
-		// systems keep the drives in an unlocked state during software triggered reboots,
-		// which means that the "real" kernel and rootfs should be booted afterwards
-		if dmi.BaseboardManufacturer == "Supermicro" && strings.HasPrefix(dmi.BaseboardProduct, "X12") {
-			log.Printf("Work-around: Rebooting system instead of utilizing 'boot'")
-			Execute("/bbin/shutdown", "reboot")
-		} else {
-			Execute("/bbin/boot")
-		}
+		Execute("/bbin/boot")
 	}()
 
 	reader.ReadString('\n')
