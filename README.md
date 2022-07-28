@@ -1,10 +1,9 @@
 # elx-pba
 
-![GitHub commit checks state](https://img.shields.io/github/checks-status/elastx/elx-pba/main?label=ci)
-[![Go Report Card](https://goreportcard.com/badge/github.com/elastx/elx-pba)](https://goreportcard.com/report/github.com/elastx/elx-pba)
-![License](https://img.shields.io/badge/license-Apache--2.0-blue)
-
 Pre-boot authentication image for TCG Storage devices
+
+Fork of the excellent work of https://github.com/elastx/elx-pba with the unlock password being queried interactively from the user instead of being taken from the system UUID.  
+Since my time is pretty limited, this is meant just to make my personal changes publicly available and I will most likely not be able to react on issues or accept pull requests. But feel free to fork again and enhance it yourself.
 
 ## Building
 
