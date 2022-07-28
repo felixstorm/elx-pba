@@ -3,6 +3,7 @@ GOARCH := amd64
 endif
 
 rootfs-$(ARCH).cpio: go/bin/u-root $(wildcard cmd/*/*.go)
+	sed -i 's|GitInfo = "[^"]*"|GitInfo = "$(LOCAL_GIT_INFO)"|g' cmd/pbainit/gitinfo.go
 	(cd go/src/github.com/u-root/u-root; ../../../../bin/u-root \
 				-o "../../../../../$(@)" \
 				-build=gbb \

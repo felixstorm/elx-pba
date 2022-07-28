@@ -2,6 +2,8 @@ ARCH ?= $(shell uname -m)
 LINUX_VERSION ?= 5.10.132
 UROOT_GIT_REF ?= 814833c
 
+LOCAL_GIT_INFO ?= $(shell git log --pretty=format:'%h (%ci, %D)' -n 1)
+
 ifeq ($(shell uname),Linux)
 ACCEL ?= kvm
 else ifeq ($(shell uname),Darwin)

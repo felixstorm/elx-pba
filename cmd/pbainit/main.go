@@ -32,15 +32,17 @@ import (
 )
 
 var (
-	Version = "(devel)"
-	GitHash = "(no hash)"
+	GitSource = "https://github.com/felixstorm/elx-pba"
 )
 
 func main() {
 	fmt.Printf("\n")
 	l, _ := base64.StdEncoding.DecodeString(logo)
 	fmt.Println(string(l))
-	fmt.Printf("Welcome to Elastx PBA version %s (git %s)\n\n", Version, GitHash)
+	if GitInfo == "" {
+		GitInfo = "(no hash)"
+	}
+	fmt.Printf("Welcome to Elastx PBA!\nSource: %s, %s\n\n", GitSource, GitInfo)
 	log.SetPrefix("elx-pba: ")
 
 	if _, err := mount.Mount("proc", "/proc", "proc", "", 0); err != nil {
