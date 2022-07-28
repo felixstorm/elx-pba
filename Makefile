@@ -23,7 +23,7 @@ include rootfs.mk
 include image.mk
 
 .PHONY: qemu-x86_64
-qemu-x86_64: elx-pba-x86_64.img arch/x86_64/ovmf.fd
+qemu-x86_64: elx-rescue-x86_64.img arch/x86_64/ovmf.fd
 	qemu-system-x86_64 \
 		-m 1024 \
 		-uuid 00000000-0000-0000-0000-000000000001 \
@@ -40,5 +40,4 @@ qemu-x86_64: elx-pba-x86_64.img arch/x86_64/ovmf.fd
 
 .PHONY: clean
 clean:
-	\rm -vf elx-pba-*.img elx-pba-*.fs rootfs-*.img rootfs-*.zst
-
+	\rm -vf elx-pba-*.img elx-pba-*.fs elx-rescue-*.img elx-rescue-*.fs rootfs-*.img rootfs-*.zst
