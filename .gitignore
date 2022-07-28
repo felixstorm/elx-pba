@@ -6,3 +6,5 @@ linux-*/
 rootfs-*
 **/.bb/
 go/
+!go/src/github.com/open-source-firmware/go-tcg-storage
+.vscode

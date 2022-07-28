@@ -1,5 +1,6 @@
 ARCH ?= $(shell uname -m)
 LINUX_VERSION ?= 5.13.1
+UROOT_GIT_REF ?= 814833c
 
 ifeq ($(shell uname),Linux)
 ACCEL ?= kvm

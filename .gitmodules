@@ -1,0 +1,3 @@
+[submodule "go/src/github.com/open-source-firmware/go-tcg-storage"]
+	path = go/src/github.com/open-source-firmware/go-tcg-storage
+	url = https://github.com/open-source-firmware/go-tcg-storage.git
