@@ -3,13 +3,17 @@ package main
 import (
 	"bufio"
 	"crypto/sha1"
+	"crypto/sha512"
 	"encoding/base64"
+
+	// "encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
@@ -24,6 +28,7 @@ import (
 	"github.com/u-root/u-root/pkg/ulog"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/sys/unix"
+	"golang.org/x/term"
 )
 
 var (
@@ -84,7 +89,8 @@ func main() {
 		return
 	}
 
-	unlocked := false
+	startEmergencyShell := true
+	password := ""
 	for _, fi := range sysblk {
 		devname := fi.Name()
 		if _, err := os.Stat(filepath.Join("sys/class/block", devname, "device")); os.IsNotExist(err) {
@@ -127,17 +133,24 @@ func main() {
 			}
 			continue
 		}
-		if d0.Locking != nil {
-			if d0.Locking.Locked {
-				log.Printf("Drive %s is locked", identity)
-			}
+		if d0.Locking != nil && d0.Locking.Locked {
+			log.Printf("Drive %s is locked", identity)
 			if d0.Locking.MBREnabled && !d0.Locking.MBRDone {
 				log.Printf("Drive %s has active shadow MBR", identity)
 			}
-			pass := fmt.Sprintf("%s", dmi.SystemUUID)
-			if err := unlock(d, pass, dsn); err != nil {
-				log.Printf("Failed to unlock %s: %v", identity, err)
-				continue
+			unlocked := false
+			for !unlocked {
+				// reuse-existing password for multiple drives
+				if password == "" {
+					password = getDrivePassword()
+				}
+				if err := unlock(d, password, dsn); err != nil {
+					log.Printf("Failed to unlock %s: %v", identity, err)
+					// clear password to be queried again
+					password = ""
+				} else {
+					unlocked = true
+				}
 			}
 			bd, err := block.Device(devpath)
 			if err != nil {
@@ -149,13 +162,13 @@ func main() {
 				continue
 			}
 			log.Printf("Drive %s has been unlocked", devpath)
-			unlocked = true
+			startEmergencyShell = false
 		} else {
 			log.Printf("Considered drive %s, but drive is not locked", identity)
 		}
 	}
 
-	if !unlocked {
+	if startEmergencyShell {
 		log.Printf("No drives changed state to unlocked, starting shell for troubleshooting")
 		return
 	}
@@ -186,10 +199,33 @@ func main() {
 	abort <- true
 }
 
+func getDrivePassword() string {
+	fmt.Printf("Enter OPAL drive password (prefix with 'chubbyant ' to use 500000*SH512): ")
+	bytePassword, err := term.ReadPassword(0)
+	fmt.Println()
+	if err != nil {
+		log.Printf("terminal.ReadPassword(0): %v", err)
+		return ""
+	}
+	return string(bytePassword)
+}
+
 func unlock(d tcg.DriveIntf, pass string, driveserial []byte) error {
 	// Same format as used by sedutil for compatibility
 	salt := fmt.Sprintf("%-20s", string(driveserial))
-	pin := pbkdf2.Key([]byte(pass), []byte(salt[:20]), 75000, 32, sha1.New)
+	var pin []byte
+	// y and z are switched on US English vs. German keyboard layout
+	chubbyAntRegexp := regexp.MustCompile(`^chubb(y|z)ant `)
+	if chubbyAntRegexp.MatchString(pass) {
+		pass = chubbyAntRegexp.ReplaceAllLiteralString(pass, "")
+		// github.com/ChubbyAnt/sedutil
+		pin = pbkdf2.Key([]byte(pass), []byte(salt[:20]), 500000, 32, sha512.New)
+	} else {
+		// github.com/Drive-Trust-Alliance/sedutil
+		pin = pbkdf2.Key([]byte(pass), []byte(salt[:20]), 75000, 32, sha1.New)
+	}
+	log.Printf("Password length: %v", len(pass))
+	// log.Printf("Password: %s, hash: %s", hex.EncodeToString([]byte(pass)), hex.EncodeToString(pin))
 
 	cs, lmeta, err := locking.Initialize(d)
 	if err != nil {
