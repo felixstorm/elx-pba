@@ -33,7 +33,7 @@ qemu-x86_64: elx-pba-x86_64.img arch/x86_64/ovmf.fd
 		-device "virtio-scsi-pci,id=scsi0" \
 		-device "scsi-hd,bus=scsi0.0,drive=hd0" \
 		-drive "id=hd0,if=none,format=raw,readonly=on,file=$<" \
-		-drive "if=pflash,format=raw,readonly,file=arch/x86_64/ovmf.fd" \
+		-drive "if=pflash,format=raw,readonly=on,file=arch/x86_64/ovmf.fd" \
 		-accel "$(ACCEL)" \
 		-machine "type=q35,smm=on,usb=on" \
 		-no-reboot
