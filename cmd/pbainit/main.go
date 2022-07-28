@@ -186,7 +186,9 @@ func main() {
 		case <-time.After(5 * time.Second):
 			// pass
 		}
-		Execute("/bbin/boot")
+		// reboot as 'boot' mounts filesystems and therefore messes up Hibernation :-(
+		// note that Ext3 or ext4 will replay its journal if the filesystem is dirty even when mounted read-only
+		Execute("/bbin/shutdown", "reboot")
 	}()
 
 	reader.ReadString('\n')
