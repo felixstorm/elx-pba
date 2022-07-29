@@ -31,16 +31,17 @@ var (
 )
 
 func main() {
+	// courtesy of https://patorjk.com/software/taag/#p=display&f=Big&t=Encrypted%20Drive
 	fmt.Println()
 	fmt.Println()
-	fmt.Println(`   _______   ________   ________  ________      ___    ___ ________  _________  _______   ________          ________  ________  ___  ___      ___ _______       `)
-	fmt.Println(`   |\  ___ \ |\   ___  \|\   ____\|\   __  \    |\  \  /  /|\   __  \|\___   ___\\  ___ \ |\   ___ \        |\   ___ \|\   __  \|\  \|\  \    /  /|\  ___ \     `)
-	fmt.Println(`   \ \   __/|\ \  \\ \  \ \  \___|\ \  \|\  \   \ \  \/  / | \  \|\  \|___ \  \_\ \   __/|\ \  \_|\ \       \ \  \_|\ \ \  \|\  \ \  \ \  \  /  / | \   __/|    `)
-	fmt.Println(`    \ \  \_|/_\ \  \\ \  \ \  \    \ \   _  _\   \ \    / / \ \   ____\   \ \  \ \ \  \_|/_\ \  \ \\ \       \ \  \ \\ \ \   _  _\ \  \ \  \/  / / \ \  \_|/__  `)
-	fmt.Println(`     \ \  \_|\ \ \  \\ \  \ \  \____\ \  \\  \|   \/  /  /   \ \  \___|    \ \  \ \ \  \_|\ \ \  \_\\ \       \ \  \_\\ \ \  \\  \\ \  \ \    / /   \ \  \_|\ \ `)
-	fmt.Println(`      \ \_______\ \__\\ \__\ \_______\ \__\\ _\ __/  / /      \ \__\        \ \__\ \ \_______\ \_______\       \ \_______\ \__\\ _\\ \__\ \__/ /     \ \_______\`)
-	fmt.Println(`       \|_______|\|__| \|__|\|_______|\|__|\|__|\___/ /        \|__|         \|__|  \|_______|\|_______|        \|_______|\|__|\|__|\|__|\|__|/       \|_______|`)
-	fmt.Println(`                                               \|___|/                                                                                                          `)
+	fmt.Println(`   ______                             _           _   _____       _            `)
+	fmt.Println(`   |  ____|                           | |         | | |  __ \     (_)          `)
+	fmt.Println(`   | |__   _ __   ___ _ __ _   _ _ __ | |_ ___  __| | | |  | |_ __ ___   _____ `)
+	fmt.Println(`   |  __| | '_ \ / __| '__| | | | '_ \| __/ _ \/ _' | | |  | | '__| \ \ / / _ \`)
+	fmt.Println(`   | |____| | | | (__| |  | |_| | |_) | ||  __/ (_| | | |__| | |  | |\ V /  __/`)
+	fmt.Println(`   |______|_| |_|\___|_|   \__, | .__/ \__\___|\__,_| |_____/|_|  |_| \_/ \___|`)
+	fmt.Println(`                            __/ | |                                            `)
+	fmt.Println(`                           |___/|_|                                            `)
 	fmt.Println()
 	fmt.Println()
 	fmt.Println()
@@ -192,7 +193,7 @@ func getDrivePassword() string {
 	}
 
 	fmt.Println()
-	fmt.Printf("Enter OPAL drive password (prefix with 'ca ' for 500000*SHA512): ")
+	fmt.Printf("Enter OPAL drive password (empty to skip, prefix with 'ca ' for 500000*SHA512): ")
 	bytePassword, err := term.ReadPassword(0)
 	fmt.Println()
 	if err != nil {
