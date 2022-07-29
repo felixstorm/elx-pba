@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"crypto/sha1"
 	"crypto/sha512"
 	"fmt"
@@ -21,7 +20,6 @@ import (
 	"github.com/bluecmd/go-tcg-storage/pkg/locking"
 	"github.com/u-root/u-root/pkg/libinit"
 	"github.com/u-root/u-root/pkg/mount"
-	"github.com/u-root/u-root/pkg/mount/block"
 	"github.com/u-root/u-root/pkg/ulog"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/sys/unix"
@@ -35,13 +33,14 @@ var (
 func main() {
 	fmt.Println()
 	fmt.Println()
-	fmt.Println(`   ________ ___   ___  ________  ________      `)
-	fmt.Println(`   |\   ____\\  \ |\  \|\   __  \|\   __  \    `)
-	fmt.Println(`   \ \  \___\ \  \\_\  \ \  \|\  \ \  \|\  \   `)
-	fmt.Println(`    \ \  \   \ \______  \ \   __  \ \   __  \  `)
-	fmt.Println(`     \ \  \___\|_____|\  \ \  \ \  \ \  \|\  \ `)
-	fmt.Println(`      \ \_______\    \ \__\ \__\ \__\ \_______\`)
-	fmt.Println(`       \|_______|     \|__|\|__|\|__|\|_______|`)
+	fmt.Println(`   _______   ________   ________  ________      ___    ___ ________  _________  _______   ________          ________  ________  ___  ___      ___ _______       `)
+	fmt.Println(`   |\  ___ \ |\   ___  \|\   ____\|\   __  \    |\  \  /  /|\   __  \|\___   ___\\  ___ \ |\   ___ \        |\   ___ \|\   __  \|\  \|\  \    /  /|\  ___ \     `)
+	fmt.Println(`   \ \   __/|\ \  \\ \  \ \  \___|\ \  \|\  \   \ \  \/  / | \  \|\  \|___ \  \_\ \   __/|\ \  \_|\ \       \ \  \_|\ \ \  \|\  \ \  \ \  \  /  / | \   __/|    `)
+	fmt.Println(`    \ \  \_|/_\ \  \\ \  \ \  \    \ \   _  _\   \ \    / / \ \   ____\   \ \  \ \ \  \_|/_\ \  \ \\ \       \ \  \ \\ \ \   _  _\ \  \ \  \/  / / \ \  \_|/__  `)
+	fmt.Println(`     \ \  \_|\ \ \  \\ \  \ \  \____\ \  \\  \|   \/  /  /   \ \  \___|    \ \  \ \ \  \_|\ \ \  \_\\ \       \ \  \_\\ \ \  \\  \\ \  \ \    / /   \ \  \_|\ \ `)
+	fmt.Println(`      \ \_______\ \__\\ \__\ \_______\ \__\\ _\ __/  / /      \ \__\        \ \__\ \ \_______\ \_______\       \ \_______\ \__\\ _\\ \__\ \__/ /     \ \_______\`)
+	fmt.Println(`       \|_______|\|__| \|__|\|_______|\|__|\|__|\___/ /        \|__|         \|__|  \|_______|\|_______|        \|_______|\|__|\|__|\|__|\|__|/       \|_______|`)
+	fmt.Println(`                                               \|___|/                                                                                                          `)
 	fmt.Println()
 	fmt.Println()
 	fmt.Println()
@@ -65,7 +64,7 @@ func main() {
 	log.Printf("Starting system...")
 
 	if err := ulog.KernelLog.SetConsoleLogLevel(ulog.KLogNotice); err != nil {
-		log.Printf("Could not set log level: %v", err)
+		log.Printf("Could not set log level KLogNotice: %v", err)
 	}
 
 	libinit.SetEnv()
@@ -153,15 +152,16 @@ func main() {
 				}
 			}
 			if unlocked {
-				bd, err := block.Device(devpath)
-				if err != nil {
-					log.Printf("block.Device(%s): %v", devpath, err)
-					continue
-				}
-				if err := bd.ReadPartitionTable(); err != nil {
-					log.Printf("block.ReadPartitionTable(%s): %v", devpath, err)
-					continue
-				}
+				// TBD: no need to read partition table as we're rebooting anyway. avoid anything that could change anything on disk and disturb hibernation...
+				// bd, err := block.Device(devpath)
+				// if err != nil {
+				// 	log.Printf("block.Device(%s): %v", devpath, err)
+				// 	continue
+				// }
+				// if err := bd.ReadPartitionTable(); err != nil {
+				// 	log.Printf("block.ReadPartitionTable(%s): %v", devpath, err)
+				// 	continue
+				// }
 				log.Printf("Drive %s has been unlocked", devpath)
 				startEmergencyShell = false
 			}
@@ -175,28 +175,24 @@ func main() {
 		return
 	}
 
-	reader := bufio.NewReader(os.Stdin)
-	abort := make(chan bool)
-	go func() {
-		fmt.Println("")
-		log.Printf("Starting 'boot' in 5 seconds, press Enter to start shell instead")
-		select {
-		case <-abort:
-			return
-		case <-time.After(5 * time.Second):
-			// pass
-		}
-		// reboot as 'boot' mounts filesystems and therefore messes up Hibernation :-(
-		// note that Ext3 or ext4 will replay its journal if the filesystem is dirty even when mounted read-only
-		Execute("/bbin/shutdown", "reboot")
-	}()
+	fmt.Println()
+	if waitForEnter("Starting OS in 3 seconds, press Enter to start shell instead: ", 3) {
+		return
+	}
 
-	reader.ReadString('\n')
-	abort <- true
+	// reboot for now as 'boot' would mount filesystems and therefore mess up hibernation :-(
+	// note that ext3 or ext4 will replay its journal even when mounted read-only if the filesystem is dirty
+	Execute("/bbin/shutdown", "reboot")
 }
 
 func getDrivePassword() string {
-	fmt.Printf("Enter OPAL drive password (prefix with 'chubbyant ' to use 500000*SH512): ")
+	// avoid kernel log messages messing up prompt
+	if err := ulog.KernelLog.SetConsoleLogLevel(ulog.KLogWarning); err != nil {
+		log.Printf("Could not set log level KLogWarning: %v", err)
+	}
+
+	fmt.Println()
+	fmt.Printf("Enter OPAL drive password (prefix with 'ca ' for 500000*SHA512): ")
 	bytePassword, err := term.ReadPassword(0)
 	fmt.Println()
 	if err != nil {
@@ -210,8 +206,7 @@ func unlock(d tcg.DriveIntf, pass string, driveserial []byte) error {
 	// Same format as used by sedutil for compatibility
 	salt := fmt.Sprintf("%-20s", string(driveserial))
 	var pin []byte
-	// y and z are switched on US English vs. German keyboard layout
-	chubbyAntRegexp := regexp.MustCompile(`^chubb(y|z)ant `)
+	chubbyAntRegexp := regexp.MustCompile(`^ca `)
 	if chubbyAntRegexp.MatchString(pass) {
 		pass = chubbyAntRegexp.ReplaceAllLiteralString(pass, "")
 		// github.com/ChubbyAnt/sedutil
@@ -249,6 +244,47 @@ func unlock(d tcg.DriveIntf, pass string, driveserial []byte) error {
 		}
 	}
 	return nil
+}
+
+func waitForEnter(prompt string, seconds int) bool {
+
+	f, err := os.OpenFile("/dev/console", os.O_RDWR, 0)
+	if err != nil {
+		log.Printf("ERROR: Open /dev/console failed: %v", err)
+		return false
+	}
+	defer f.Close()
+
+	oldState, err := term.MakeRaw(int(f.Fd()))
+	if err != nil {
+		log.Printf("ERROR: MakeRaw failed for Fd %d: %v", f.Fd(), err)
+		return false
+	}
+	defer term.Restore(int(f.Fd()), oldState)
+
+	if err = syscall.SetNonblock(int(f.Fd()), true); err != nil {
+		log.Printf("ERROR: SetNonblock failed for Fd %d: %v", f.Fd(), err)
+		return false
+	}
+
+	newTerm := term.NewTerminal(f, prompt)
+	for i := 0; i < seconds*2; i++ {
+		if i > 0 {
+			fmt.Print(".")
+		}
+		if err = f.SetDeadline(time.Now().Add(500 * time.Millisecond)); err != nil {
+			log.Printf("ERROR: SetDeadline failed for Fd %d: %v", f.Fd(), err)
+			return false
+		}
+		_, err = newTerm.ReadLine()
+		if err == nil {
+			return true
+		}
+	}
+
+	// nobody pressed enter (need \r to reset start of line)
+	fmt.Println("\r")
+	return false
 }
 
 func Execute(name string, args ...string) {
