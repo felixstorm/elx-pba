@@ -177,7 +177,7 @@ func main() {
 	}
 
 	fmt.Println()
-	if waitForEnter("Starting OS in 3 seconds, press Enter to start shell instead: ", 3) {
+	if waitForEnter("Starting OS in 2 seconds, press Enter to start shell instead: ", 2) {
 		return
 	}
 
