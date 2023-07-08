@@ -45,6 +45,11 @@ qemu-x86_64: .build/elx-rescue-x86_64.img arch/x86_64/ovmf.fd
 clean:
 	rm -vf .build/rootfs-*.cpio .build/elx-*.fs .build/elx-*.img
 
+.PHONY: clean-go
+clean-go: clean
+	if [ -e .build/go ]; then chmod -R +rw .build/go; fi
+	rm -rf .build/go
+
 .PHONY: clean-deep
 clean-deep:
 	if [ -e .build/* ]; then chmod -R +rw .build/*; fi
