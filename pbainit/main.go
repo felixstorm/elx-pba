@@ -181,7 +181,7 @@ func main() {
 		return
 	}
 
-	// note that ext3 or ext4 will replay its journal even when mounted read-only if the filesystem is dirty
+	// note that ext3 or ext4 will replay its journal even when mounted read-only if the filesystem is dirty which will mess up resuming from hibernation
 	// therefore limit mounting to boot partition nvme0n1p4 (which contains grub.cfg)
 	Execute("/bbin/boot2", "-name", "nvme0n1p4")
 }
