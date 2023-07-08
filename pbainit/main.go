@@ -20,6 +20,7 @@ import (
 	"github.com/bluecmd/go-tcg-storage/pkg/locking"
 	"github.com/u-root/u-root/pkg/libinit"
 	"github.com/u-root/u-root/pkg/mount"
+	"github.com/u-root/u-root/pkg/mount/block"
 	"github.com/u-root/u-root/pkg/ulog"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/sys/unix"
@@ -153,16 +154,15 @@ func main() {
 				}
 			}
 			if unlocked {
-				// TBD: no need to read partition table as we're rebooting anyway. avoid anything that could change anything on disk and disturb hibernation...
-				// bd, err := block.Device(devpath)
-				// if err != nil {
-				// 	log.Printf("block.Device(%s): %v", devpath, err)
-				// 	continue
-				// }
-				// if err := bd.ReadPartitionTable(); err != nil {
-				// 	log.Printf("block.ReadPartitionTable(%s): %v", devpath, err)
-				// 	continue
-				// }
+				bd, err := block.Device(devpath)
+				if err != nil {
+					log.Printf("block.Device(%s): %v", devpath, err)
+					continue
+				}
+				if err := bd.ReadPartitionTable(); err != nil {
+					log.Printf("block.ReadPartitionTable(%s): %v", devpath, err)
+					continue
+				}
 				log.Printf("Drive %s has been unlocked", devpath)
 				startEmergencyShell = false
 			}
@@ -181,9 +181,9 @@ func main() {
 		return
 	}
 
-	// reboot for now as 'boot' would mount filesystems and therefore mess up hibernation :-(
 	// note that ext3 or ext4 will replay its journal even when mounted read-only if the filesystem is dirty
-	Execute("/bbin/shutdown", "reboot")
+	// therefore limit mounting to boot partition nvme0n1p4 (which contains grub.cfg)
+	Execute("/bbin/boot2", "-name", "nvme0n1p4")
 }
 
 func getDrivePassword() string {
