@@ -26,5 +26,6 @@ endif
 		core \
 		boot \
 		"$(PWD)/pbainit" \
+		"$(PWD)/boot2" \
 		cmds/exp/partprobe \
 	)
