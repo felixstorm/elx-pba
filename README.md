@@ -23,11 +23,11 @@ Alternatively, use the containerized build tools:
 
 ```shell
 $ docker build \
-	-t elastx.se/elx-pba-builder:latest \
+	-t elx-pba-builder:latest \
 	-f builder.dockerfile .
 $ docker run \
 	--rm --volume ${PWD}:/src \
-	elastx.se/elx-pba-builder:latest
+	elx-pba-builder:latest
 ```
 
 

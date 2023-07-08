@@ -2,19 +2,21 @@ ifeq ($(ARCH),x86_64)
 GOARCH := amd64
 endif
 
-rootfs-$(ARCH).cpio: go/bin/u-root $(wildcard cmd/*/*.go)
-	sed -i 's|GitInfo = "[^"]*"|GitInfo = "$(LOCAL_GIT_INFO)"|g' cmd/pbainit/gitinfo.go
-	(cd go/src/github.com/u-root/u-root; ../../../../bin/u-root \
-				-o "../../../../../$(@)" \
-				-build=gbb \
-				-initcmd pbainit \
-				boot \
-				core \
-				./cmds/exp/dmidecode \
-				./cmds/exp/page \
-				./cmds/exp/partprobe \
-				../../../../../cmd/pbainit \
-				../../open-source-firmware/go-tcg-storage/cmd/sedlockctl \
-				../../open-source-firmware/go-tcg-storage/cmd/tcgdiskstat \
-				../../open-source-firmware/go-tcg-storage/cmd/tcgsdiag \
+.build/rootfs-$(ARCH).cpio: .build/u-root/u-root $(wildcard cmd/*/*.go)
+	GOPATH="$(GOPATH)" go install \
+		github.com/open-source-firmware/go-tcg-storage/cmd/sedlockctl@$(GO_TCG_STORAGE_GIT_REF) \
+		github.com/open-source-firmware/go-tcg-storage/cmd/tcgdiskstat@$(GO_TCG_STORAGE_GIT_REF) \
+		github.com/open-source-firmware/go-tcg-storage/cmd/tcgsdiag@$(GO_TCG_STORAGE_GIT_REF)
+	sed -i 's|GitInfo = "[^"]*"|GitInfo = "$(LOCAL_GIT_INFO)"|g' pbainit/gitinfo.go
+	(cd .build/u-root; GOPATH="$(GOPATH)" ./u-root \
+		-o "$(PWD)/$(@)" \
+		-build=gbb \
+		-initcmd pbainit \
+		-files $(GOPATH)/bin/sedlockctl:usr/local/bin/sedlockctl \
+		-files $(GOPATH)/bin/tcgdiskstat:usr/local/bin/tcgdiskstat \
+		-files $(GOPATH)/bin/tcgsdiag:usr/local/bin/tcgsdiag \
+		core \
+		boot \
+		"$(PWD)/pbainit" \
+		cmds/exp/partprobe \
 	)

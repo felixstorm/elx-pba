@@ -1,10 +1,2 @@
-.*.sw?
-linux-*.tar.xz
-linux-*/
-*.fs
-*.img
-rootfs-*
-**/.bb/
-go/
-!go/src/github.com/open-source-firmware/go-tcg-storage
 .vscode
+.build*

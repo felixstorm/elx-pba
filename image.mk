@@ -2,7 +2,7 @@ ifeq ($(ARCH),x86_64)
 BOOTXEFI := bootx64.efi
 endif
 
-elx-pba-$(ARCH).fs: $(KERNEL_IMAGE)
+.build/elx-pba-$(ARCH).fs: $(KERNEL_IMAGE)
 	truncate -s 30M "$@"
 	mkfs.vfat -n ELX-PBA "$@"
 	mmd -oi "$@" ::EFI
@@ -10,7 +10,7 @@ elx-pba-$(ARCH).fs: $(KERNEL_IMAGE)
 	mcopy -oi "$@" $< ::EFI/BOOT/$(BOOTXEFI)
 	mdir -/i "$@" ::
 
-elx-pba-$(ARCH).img: elx-pba-$(ARCH).fs
+.build/elx-pba-$(ARCH).img: .build/elx-pba-$(ARCH).fs
 	truncate -s 32M "$@"
 	sgdisk -og "$@"
 	sgdisk -n "1:2048:" -c 1:"EFI System Partition" -t 1:ef00 "$@"
@@ -20,16 +20,16 @@ elx-pba-$(ARCH).img: elx-pba-$(ARCH).fs
 		dd if=/dev/stdin of="$@" count=1 bs=448 conv=notrunc
 	sfdisk -l "$@"
 
-elx-rescue-$(ARCH).fs: $(KERNEL_IMAGE) elx-pba-$(ARCH).img
+.build/elx-rescue-$(ARCH).fs: $(KERNEL_IMAGE) .build/elx-pba-$(ARCH).img
 	truncate -s 60M "$@"
 	mkfs.vfat -n ELX-RESCUE "$@"
 	mmd -oi "$@" ::EFI
 	mmd -oi "$@" ::EFI/BOOT
 	mcopy -oi "$@" $< ::EFI/BOOT/$(BOOTXEFI)
-	mcopy -oi "$@" elx-pba-$(ARCH).img ::elx-pba-$(ARCH).img
+	mcopy -oi "$@" .build/elx-pba-$(ARCH).img ::elx-pba-$(ARCH).img
 	mdir -/i "$@" ::
 
-elx-rescue-$(ARCH).img: elx-rescue-$(ARCH).fs
+.build/elx-rescue-$(ARCH).img: .build/elx-rescue-$(ARCH).fs
 	truncate -s 62M "$@"
 	sgdisk -og "$@"
 	sgdisk -n "1:2048:" -c 1:"EFI System Partition" -t 1:ef00 "$@"

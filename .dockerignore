@@ -1,4 +1,2 @@
-go/
-linux-*/
-rootfs-*
-elx-pba-*
+.vscode
+.build*

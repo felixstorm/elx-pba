@@ -1,8 +1,11 @@
 ARCH ?= $(shell uname -m)
-LINUX_VERSION ?= 5.10.132
-UROOT_GIT_REF ?= 814833c
+# latest as of 23-07-08
+LINUX_VERSION ?= 5.10.186
+UROOT_GIT_REF ?= 5d26bc0
+GO_TCG_STORAGE_GIT_REF ?= dd380bf
 
 LOCAL_GIT_INFO ?= $(shell git log --pretty=format:'%h (%ci, %D)' -n 1)
+GOPATH ?= $(PWD)/.build/go
 
 ifeq ($(shell uname),Linux)
 ACCEL ?= kvm
@@ -13,7 +16,7 @@ ACCEL ?= tcg
 endif
 
 .PHONY: all
-all: elx-pba-$(ARCH).img
+all: .build/elx-pba-$(ARCH).img
 
 .DELETE_ON_ERROR:
 
@@ -23,7 +26,7 @@ include rootfs.mk
 include image.mk
 
 .PHONY: qemu-x86_64
-qemu-x86_64: elx-rescue-x86_64.img arch/x86_64/ovmf.fd
+qemu-x86_64: .build/elx-rescue-x86_64.img arch/x86_64/ovmf.fd
 	qemu-system-x86_64 \
 		-m 1024 \
 		-uuid 00000000-0000-0000-0000-000000000001 \
@@ -40,4 +43,9 @@ qemu-x86_64: elx-rescue-x86_64.img arch/x86_64/ovmf.fd
 
 .PHONY: clean
 clean:
-	\rm -vf elx-pba-*.img elx-pba-*.fs elx-rescue-*.img elx-rescue-*.fs rootfs-*.img rootfs-*.zst
+	rm -vf .build/rootfs-*.cpio .build/elx-*.fs .build/elx-*.img
+
+.PHONY: clean-deep
+clean-deep:
+	if [ -e .build/* ]; then chmod -R +rw .build/*; fi
+	rm -rf .build/*

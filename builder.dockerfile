@@ -1,4 +1,4 @@
-FROM docker.io/library/golang:1.17.6-bullseye
+FROM docker.io/library/golang:1.20-bullseye
 
 RUN apt-get update && \
 	apt-get install --no-install-recommends --yes \
@@ -15,7 +15,7 @@ RUN gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys \
 	647F28654894E3BD457199BE38DBBDC86092693E \
 	ABAF11C65A2970B130ABE3C479BE3E4300411886
 
-ENV GOPATH=/src/go
+ENV GOPATH=/src/.build/go
 WORKDIR /src
 
 ENTRYPOINT /usr/bin/make
