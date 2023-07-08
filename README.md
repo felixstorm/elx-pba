@@ -46,6 +46,6 @@ $ make qemu-x86_64
 ## Testing on a real disk
 
 ```shell
-$ OPAL_KEY=debug
-$ sudo sedutil-cli --loadpbaimage "${OPAL_KEY}" elx-pba-x86_64.img /dev/sdb
+$  export OPAL_KEY=debug # keep space before command to keep it out of your (bash) history
+$ sudo arch/x86_64/sedutil/sedutil-cli --loadpbaimage "${OPAL_KEY}" .build/elx-pba-x86_64.img /dev/nvme0n1
 ```
