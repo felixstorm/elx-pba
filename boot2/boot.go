@@ -1,3 +1,7 @@
+//
+// copied from https://github.com/u-root/u-root/blob/main/cmds/boot/boot/boot.go
+//
+
 // Copyright 2012-2020 the u-root Authors. All rights reserved
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
@@ -45,6 +49,7 @@ import (
 
 var (
 	verbose = flag.Bool("v", false, "Print debug messages")
+	noMenu  = flag.Bool("no-menu", false, "do not show a menu (to allow to view debug messages)")
 	noLoad  = flag.Bool("no-load", false, "print chosen boot configuration, but do not load + exec it")
 	noExec  = flag.Bool("no-exec", false, "load boot configuration, but do not exec it")
 
@@ -52,6 +57,7 @@ var (
 	reuseCmdlineItem  = flag.String("reuse", "console", "comma separated list of kernel params value to reuse from current kernel (default to console)")
 	appendCmdline     = flag.String("append", "", "Additional kernel params")
 	blockList         = flag.String("block", "", "comma separated list of pci vendor and device ids to ignore (format vendor:device). E.g. 0x8086:0x1234,0x8086:0xabcd")
+	nameFilter        = flag.String("name", "", "name of block device (i.e. partition) to boot from. E.g. nvme0n1p4")
 )
 
 // updateBootCmdline get the kernel command line parameters and filter it:
@@ -84,6 +90,11 @@ func main() {
 		}
 	}
 
+	// support filtering by name
+	if *nameFilter != "" {
+		blockDevs = blockDevs.FilterName(*nameFilter)
+	}
+
 	log.Printf("Booting from the following block devices: %v", blockDevs)
 
 	var l ulog.Logger = ulog.Null
@@ -100,6 +111,11 @@ func main() {
 		if li, ok := img.(*boot.LinuxImage); ok {
 			li.Cmdline = updateBootCmdline(li.Cmdline)
 		}
+	}
+
+	// exit if user does not want to see the menu
+	if *noMenu {
+		return
 	}
 
 	menuEntries := menu.OSImages(*verbose, images...)
