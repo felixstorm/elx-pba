@@ -1,0 +1,24 @@
+# If you want to disable Locking and the PBA:
+
+sedutil-cli -–disableLockingRange 0 <password> <drive>
+sedutil-cli –-setMBREnable off <password> <drive>
+
+Expected Output:
+
+#sedutil-cli --disablelockingrange 0 debug /dev/nvme0
+- 14:07:24.914 INFO: LockingRange0 disabled
+#sedutil-cli --setmbrenable off debug /dev/nvme0
+- 14:08:21.999 INFO: MBREnable set off
+
+
+# You can re-enable locking and the PBA using this command sequence:
+
+sedutil-cli -–enableLockingRange 0 <password> <drive>
+sedutil-cli –-setMBREnable on <password> <drive>
+
+Expected Output:
+
+#sedutil-cli --enablelockingrange 0 debug /dev/nvme0
+- 14:07:24.914 INFO: LockingRange0 enabled ReadLocking,WriteLocking
+#sedutil-cli --setmbrenable on debug /dev/nvme0
+- 14:08:21.999 INFO: MBREnable set on

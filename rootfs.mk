@@ -15,6 +15,14 @@ endif
 		-files $(GOPATH)/bin/sedlockctl:usr/local/bin/sedlockctl \
 		-files $(GOPATH)/bin/tcgdiskstat:usr/local/bin/tcgdiskstat \
 		-files $(GOPATH)/bin/tcgsdiag:usr/local/bin/tcgsdiag \
+		-files $(PWD)/arch/$(ARCH)/sedutil/sedutil-cli:usr/local/bin/sedutil-cli \
+		-files $(PWD)/arch/$(ARCH)/sedutil/sedutil-cli-ca:usr/local/bin/sedutil-cli-ca \
+		-files $(PWD)/arch/$(ARCH)/sedutil/sedutil_Disable_Locking.txt:sedutil_Disable_Locking.txt \
+		-files $(PWD)/arch/$(ARCH)/sedutil/sedutil_unlock.txt:sedutil_unlock.txt \
+		-files $(PWD)/sed_lock.sh:usr/local/bin/sed_lock.sh \
+		-files $(PWD)/sed_unlock.sh:usr/local/bin/sed_unlock.sh \
+		-files $(PWD)/sed_enable.sh:usr/local/bin/sed_enable.sh \
+		-files $(PWD)/sed_disable.sh:usr/local/bin/sed_disable.sh \
 		core \
 		boot \
 		"$(PWD)/pbainit" \

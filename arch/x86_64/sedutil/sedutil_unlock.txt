@@ -1,0 +1,5 @@
+Clonezilla: cd /usr/lib/live/mount/medium/Emergency_Tools_FS_Linux/sedutil/ChubbyAnt
+
+sudo su
+./sedutil-cli --setlockingrange 0 rw <password> /dev/nvme0
+./sedutil-cli --setmbrdone on <password> /dev/nvme0
