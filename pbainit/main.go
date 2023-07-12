@@ -145,7 +145,8 @@ func main() {
 						break
 					}
 				}
-				if err := unlock(d, password, dsn); err != nil {
+				// if err := unlock(d, password, dsn); err != nil {
+				if err := unlockWithSedutilDta(devpath, password, dsn); err != nil {
 					log.Printf("Failed to unlock %s: %v", identity, err)
 					// clear password to be queried again
 					password = ""
@@ -247,6 +248,25 @@ func unlock(d tcg.DriveIntf, pass string, driveserial []byte) error {
 	return nil
 }
 
+func unlockWithSedutilDta(devpath string, pass string, _ []byte) error {
+	var sedutilCli string
+	chubbyAntRegexp := regexp.MustCompile(`^ca `)
+	if chubbyAntRegexp.MatchString(pass) {
+		pass = chubbyAntRegexp.ReplaceAllLiteralString(pass, "")
+		// github.com/ChubbyAnt/sedutil
+		sedutilCli = "sedutil-cli-ca"
+	} else {
+		// github.com/Drive-Trust-Alliance/sedutil
+		sedutilCli = "sedutil-cli"
+	}
+
+	err := Execute(sedutilCli, "--setLockingRange", "0", "rw", pass, devpath)
+	if err != nil {
+		return err
+	}
+	return Execute(sedutilCli, "--setMbrDone", "on", pass, devpath)
+}
+
 func waitForEnter(prompt string, seconds int) bool {
 
 	f, err := os.OpenFile("/dev/console", os.O_RDWR, 0)
@@ -288,7 +308,7 @@ func waitForEnter(prompt string, seconds int) bool {
 	return false
 }
 
-func Execute(name string, args ...string) {
+func Execute(name string, args ...string) error {
 	environ := append(os.Environ(), "USER=root")
 	environ = append(environ, "HOME=/root")
 	environ = append(environ, "TZ=UTC")
@@ -304,7 +324,11 @@ func Execute(name string, args ...string) {
 	}
 	cmd.SysProcAttr.Setctty = true
 	cmd.SysProcAttr.Setsid = true
-	if err := cmd.Run(); err != nil {
+
+	err := cmd.Run()
+	if err != nil {
 		log.Printf("Failed to execute: %v", err)
 	}
+
+	return err
 }

@@ -23,6 +23,7 @@ endif
 		-files $(PWD)/sed_unlock.sh:usr/local/bin/sed_unlock.sh \
 		-files $(PWD)/sed_enable.sh:usr/local/bin/sed_enable.sh \
 		-files $(PWD)/sed_disable.sh:usr/local/bin/sed_disable.sh \
+		-files $(PWD)/b.sh:usr/local/bin/b.sh \
 		core \
 		boot \
 		"$(PWD)/pbainit" \
