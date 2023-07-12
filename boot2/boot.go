@@ -57,7 +57,7 @@ var (
 	reuseCmdlineItem  = flag.String("reuse", "console", "comma separated list of kernel params value to reuse from current kernel (default to console)")
 	appendCmdline     = flag.String("append", "", "Additional kernel params")
 	blockList         = flag.String("block", "", "comma separated list of pci vendor and device ids to ignore (format vendor:device). E.g. 0x8086:0x1234,0x8086:0xabcd")
-	nameFilter        = flag.String("name", "", "name of block device (i.e. partition) to boot from. E.g. nvme0n1p4")
+	nameFilter        = flag.String("name", "", "name of block device (i.e. partition) to boot from. E.g. nvme0n1p2")
 )
 
 // updateBootCmdline get the kernel command line parameters and filter it:

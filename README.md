@@ -5,7 +5,7 @@ Pre-boot authentication image for TCG Storage devices
 Fork of the excellent work of https://github.com/elastx/elx-pba with the unlock password being queried interactively from the user instead of being taken from the system UUID.  
 Since my time is pretty limited, this is meant just to make my personal changes publicly available and I will most likely not be able to react on issues or accept pull requests. But feel free to fork again and enhance it yourself.
 
-**Important:** This repository has now been customized to my personal situation, i.e. it will only try to load `grub.cfg` from `/dev/nvme0n1p4` and not from anywhere else. This is required as mounting of ext4 volumes will replay its journal even when mounted read-only if the filesystem is dirty and hence will mess up resuming from hibernation.  
+**Important:** This repository has now been customized to my personal situation, i.e. it will only try to load `grub.cfg` from `/dev/nvme0n1p2` and not from anywhere else. This is required as mounting of ext4 volumes will replay its journal even when mounted read-only if the filesystem is dirty and hence will mess up resuming from hibernation.  
 Therefore I decided to move my `/boot` folder to a separate partition formatted as ext2 (which does not have a journal in contrast to ext4) and have u-root mount this to search for `grub.cfg`. Now resuming from hibernation does work well also with `kexec` and does not require rebooting after unlocking anymore.  
 To adjust this to your situation change the partition name provided as a parameter to `boot2` in [pbainit/main.go](pbainit/main.go) (or completely remove it including `-name`).
 
