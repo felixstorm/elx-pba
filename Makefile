@@ -1,8 +1,8 @@
 ARCH ?= $(shell uname -m)
-# latest as of 23-07-08
-LINUX_VERSION ?= 5.10.186
-UROOT_GIT_REF ?= 5d26bc0
-GO_TCG_STORAGE_GIT_REF ?= dd380bf
+# latest as of 23-12-06
+LINUX_VERSION ?= 5.10.202
+UROOT_GIT_REF ?= 722eeaf
+GO_TCG_STORAGE_GIT_REF ?= 8741725
 
 LOCAL_GIT_INFO ?= $(shell git log --pretty=format:'%h (%ci, %D)' -n 1)
 GOPATH ?= $(PWD)/.build/go

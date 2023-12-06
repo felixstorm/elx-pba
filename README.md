@@ -15,7 +15,7 @@ As I encountered a drive that could not be unlocked using `github.com/bluecmd/go
 
 ## Building
 
-**NOTE**: Use a Go version of 1.20.
+**NOTE**: Use a Go version of 1.21.
 
 ```shell
 $ sudo apt install \
