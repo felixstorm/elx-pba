@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"crypto/sha512"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -178,7 +179,7 @@ func main() {
 	}
 
 	fmt.Println()
-	if waitForEnter("Starting OS in 2 seconds, press Enter to start shell instead: ", 2) {
+	if allowToCancel("Starting OS in 3 seconds (press Enter to continue immediately or Ctrl-C to start shell instead): ", 3) {
 		return
 	}
 
@@ -267,45 +268,50 @@ func unlockWithSedutilDta(devpath string, pass string, _ []byte) error {
 	return Execute(sedutilCli, "--setMbrDone", "on", pass, devpath)
 }
 
-func waitForEnter(prompt string, seconds int) bool {
+func allowToCancel(prompt string, seconds int) bool {
 
 	f, err := os.OpenFile("/dev/console", os.O_RDWR, 0)
 	if err != nil {
 		log.Printf("ERROR: Open /dev/console failed: %v", err)
-		return false
+		return true
 	}
 	defer f.Close()
 
 	oldState, err := term.MakeRaw(int(f.Fd()))
 	if err != nil {
 		log.Printf("ERROR: MakeRaw failed for Fd %d: %v", f.Fd(), err)
-		return false
+		return true
 	}
 	defer term.Restore(int(f.Fd()), oldState)
 
 	if err = syscall.SetNonblock(int(f.Fd()), true); err != nil {
 		log.Printf("ERROR: SetNonblock failed for Fd %d: %v", f.Fd(), err)
-		return false
+		return true
 	}
 
 	newTerm := term.NewTerminal(f, prompt)
+	result := false
+loop:
 	for i := 0; i < seconds*2; i++ {
 		if i > 0 {
 			fmt.Print(".")
 		}
 		if err = f.SetDeadline(time.Now().Add(500 * time.Millisecond)); err != nil {
 			log.Printf("ERROR: SetDeadline failed for Fd %d: %v", f.Fd(), err)
-			return false
+			return true
 		}
 		_, err = newTerm.ReadLine()
-		if err == nil {
-			return true
+		switch err {
+		case io.EOF: // Ctrl-C
+			result = true
+			break loop
+		case nil: // Enter
+			break loop
 		}
 	}
 
-	// nobody pressed enter (need \r to reset start of line)
-	fmt.Println("\r")
-	return false
+	fmt.Println("\r") // required to reset start of line
+	return result
 }
 
 func Execute(name string, args ...string) error {
